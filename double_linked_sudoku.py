@@ -84,7 +84,7 @@ class SudokuGenerator:
         return first_puzzle, second_puzzle
 
 def draw_sudoku_grid(c, puzzle, start_x, start_y, title):
-    cell_size = 20
+    cell_size = 16  # Reduced from 20 to fit two pairs per page
     
     if title:
         c.setFont("Helvetica-Bold", 12)
@@ -98,7 +98,7 @@ def draw_sudoku_grid(c, puzzle, start_x, start_y, title):
         c.line(start_x, start_y - i * cell_size,
                start_x + 9 * cell_size, start_y - i * cell_size)
     
-    c.setFont("Helvetica", 10)
+    c.setFont("Helvetica", 9)  # Reduced font size from 10 to 9
     for i in range(9):
         for j in range(9):
             if puzzle[i][j] != 0:
@@ -110,43 +110,80 @@ def create_pdf_with_linked_sudoku(puzzle_pairs, difficulty, filename):
     c = canvas.Canvas(filename, pagesize=letter)
     width, height = letter
     
-    for pair_num, (puzzle1, puzzle2) in enumerate(puzzle_pairs):
+    for pair_num in range(0, len(puzzle_pairs), 2):  # Process 2 pairs at a time
         if pair_num > 0:
             c.showPage()
         
-        c.setFont("Helvetica-Bold", 16)
-        c.drawString(50, height - 30, f"{difficulty.title()} Linked Sudoku Puzzles #{pair_num + 1}")
+        # Calculate positions for two linked puzzle pairs vertically stacked
+        cell_size = 16
+        overlap_width = 6 * cell_size  # Width of overlap
+        overlap_height = 6 * cell_size  # Height of overlap
         
-        c.setFont("Helvetica", 10)
-        c.drawString(50, height - 45, "The puzzles share a 3x3 block (overlapping area)")
+        # Small margins
+        top_margin = 50
+        bottom_margin = 50
         
-        # Draw first puzzle (top-left position)
-        draw_sudoku_grid(c, puzzle1, 100, height - 100, "")
+        # Calculate total height needed for one linked pair
+        pair_height = 9 * cell_size + overlap_height
         
-        # Draw second puzzle overlapping: position it so the top-left of puzzle2 
-        # overlaps with bottom-right of puzzle1
-        overlap_x = 100 + 6 * 20  # start_x + 6 cells
-        overlap_y = height - 100 - 6 * 20  # start_y - 6 cells
+        # Calculate spacing
+        available_height = height - top_margin - bottom_margin
+        spacing = (available_height - 2 * pair_height) / 1
+        
+        # Center horizontally
+        pair_width = 9 * cell_size + overlap_width
+        start_x = (width - pair_width) / 2
+        
+        # First pair position (top)
+        first_y = height - top_margin
+        
+        # Second pair position (bottom)
+        second_y = first_y - pair_height - spacing
+        
+        # Draw first linked pair
+        puzzle1, puzzle2 = puzzle_pairs[pair_num]
+        
+        # First puzzle of first pair
+        draw_sudoku_grid(c, puzzle1, start_x, first_y, "")
+        
+        # Second puzzle overlapping with first puzzle
+        overlap_x = start_x + overlap_width
+        overlap_y = first_y - overlap_height
         draw_sudoku_grid(c, puzzle2, overlap_x, overlap_y, "")
+        
+        # Draw second linked pair if it exists
+        if pair_num + 1 < len(puzzle_pairs):
+            puzzle3, puzzle4 = puzzle_pairs[pair_num + 1]
+            
+            # First puzzle of second pair
+            draw_sudoku_grid(c, puzzle3, start_x, second_y, "")
+            
+            # Second puzzle overlapping with first puzzle
+            overlap_x2 = start_x + overlap_width
+            overlap_y2 = second_y - overlap_height
+            draw_sudoku_grid(c, puzzle4, overlap_x2, overlap_y2, "")
     
     c.save()
 
 def main():
     # CHANGE DIFFICULTY HERE: "easy", "medium", or "hard"
-    DIFFICULTY = "medium"
+    DIFFICULTY = "hard"
+    
+    # CHANGE NUMBER OF PUZZLE PAIRS TO GENERATE
+    NUM_PUZZLE_PAIRS = 12
     
     generator = SudokuGenerator()
     puzzle_pairs = []
     
-    print(f"Generating {DIFFICULTY} linked Sudoku puzzles...")
-    for i in range(3):
+    print(f"Generating {NUM_PUZZLE_PAIRS} {DIFFICULTY} linked Sudoku puzzle pairs...")
+    for i in range(NUM_PUZZLE_PAIRS):
         puzzle1, puzzle2 = generator.generate_linked_puzzles(DIFFICULTY)
         puzzle_pairs.append((puzzle1, puzzle2))
         print(f"Linked pair {i+1} generated")
     
     filename = f"{DIFFICULTY}_linked_sudoku_puzzles.pdf"
     create_pdf_with_linked_sudoku(puzzle_pairs, DIFFICULTY, filename)
-    print(f"PDF created: {filename}")
+    print(f"PDF created: {filename} with {NUM_PUZZLE_PAIRS} linked puzzle pairs")
 
 if __name__ == "__main__":
     main()

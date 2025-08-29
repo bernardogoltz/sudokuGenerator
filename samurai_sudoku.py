@@ -98,7 +98,7 @@ class SamuraiSudokuGenerator:
         return center_puzzle, outer_puzzles
 
 def draw_sudoku_grid(c, puzzle, start_x, start_y, title):
-    cell_size = 20
+    cell_size = 15  # Increased from 12 to 15
     
     if title:
         c.setFont("Helvetica-Bold", 12)
@@ -112,7 +112,7 @@ def draw_sudoku_grid(c, puzzle, start_x, start_y, title):
         c.line(start_x, start_y - i * cell_size,
                start_x + 9 * cell_size, start_y - i * cell_size)
     
-    c.setFont("Helvetica", 10)
+    c.setFont("Helvetica", 10)  # Increased font size from 8 to 10
     for i in range(9):
         for j in range(9):
             if puzzle[i][j] != 0:
@@ -124,65 +124,94 @@ def create_pdf_with_samurai_sudoku(samurai_puzzles, difficulty, filename):
     c = canvas.Canvas(filename, pagesize=letter)
     width, height = letter
     
-    for puzzle_num, (center, outers) in enumerate(samurai_puzzles):
+    for puzzle_num in range(0, len(samurai_puzzles), 2):  # Process 2 puzzles at a time
         if puzzle_num > 0:
             c.showPage()
         
-        c.setFont("Helvetica-Bold", 18)
-        c.drawString(200, height - 30, "SAMURAI SUDOKU PUZZLE")
+        # Calculate positions more directly
+        cell_size = 15
         
-        c.setFont("Helvetica", 12)
-        c.drawString(150, height - 50, f"{difficulty.upper()} PUZZLE {puzzle_num + 1}")
+        # Each samurai puzzle needs about 21x21 cells of space (center + outer grids)
+        total_puzzle_height = 21 * cell_size
         
-        c.setFont("Helvetica", 10)
-        c.drawString(100, height - 70, "Complete each of the five overlapping grids so that each row, each column, and each")
-        c.drawString(100, height - 82, "outlined 3x3 square contains the numbers 1-9 exactly one time each.")
+        # Margins
+        top_margin = 10
+        bottom_margin = 50
+        spacing = 20
         
-        # Center puzzle position
-        center_x, center_y = 250, height - 250
+        # Calculate available space and scale down if needed
+        available_height = height - top_margin - bottom_margin
+        max_puzzle_height = (available_height - spacing) / 2
         
-        # Draw center puzzle
-        draw_sudoku_grid(c, center, center_x, center_y, "")
+        # If puzzles are too big, scale down
+        if total_puzzle_height > max_puzzle_height:
+            scale_factor = max_puzzle_height / total_puzzle_height
+            cell_size = int(cell_size * scale_factor)
+            total_puzzle_height = max_puzzle_height
         
-        # Calculate positions for outer puzzles to create overlaps
-        # Top-left outer puzzle (shares top-left corner with center)
-        tl_x = center_x - 6 * 20
-        tl_y = center_y + 6 * 20
-        draw_sudoku_grid(c, outers['top_left'], tl_x, tl_y, "")
+        # Center horizontally
+        puzzle_width = 21 * cell_size
+        start_x = (width - puzzle_width) / 2
         
-        # Top-right outer puzzle (shares top-right corner with center)
-        tr_x = center_x + 6 * 20
-        tr_y = center_y + 6 * 20
-        draw_sudoku_grid(c, outers['top_right'], tr_x, tr_y, "")
+        # Position puzzles with exact spacing
+        first_puzzle_center_y = height - top_margin - total_puzzle_height/2
+        second_puzzle_center_y = height - top_margin - total_puzzle_height - spacing - total_puzzle_height/2
         
-        # Bottom-left outer puzzle (shares bottom-left corner with center)
-        bl_x = center_x - 6 * 20
-        bl_y = center_y - 6 * 20
-        draw_sudoku_grid(c, outers['bottom_left'], bl_x, bl_y, "")
+        # Draw first samurai puzzle
+        center, outers = samurai_puzzles[puzzle_num]
+        draw_samurai_puzzle(c, center, outers, start_x + puzzle_width/2 - 4.5*cell_size, first_puzzle_center_y, cell_size)
         
-        # Bottom-right outer puzzle (shares bottom-right corner with center)
-        br_x = center_x + 6 * 20
-        br_y = center_y - 6 * 20
-        draw_sudoku_grid(c, outers['bottom_right'], br_x, br_y, "")
+        # Draw second samurai puzzle if it exists
+        if puzzle_num + 1 < len(samurai_puzzles):
+            center2, outers2 = samurai_puzzles[puzzle_num + 1]
+            draw_samurai_puzzle(c, center2, outers2, start_x + puzzle_width/2 - 4.5*cell_size, second_puzzle_center_y, cell_size)
     
     c.save()
 
+def draw_samurai_puzzle(c, center, outers, center_x, center_y, cell_size):
+    # Draw center puzzle
+    draw_sudoku_grid(c, center, center_x, center_y, "")
+    
+    # Calculate positions for outer puzzles to create overlaps
+    # Top-left outer puzzle
+    tl_x = center_x - 6 * cell_size
+    tl_y = center_y + 6 * cell_size
+    draw_sudoku_grid(c, outers['top_left'], tl_x, tl_y, "")
+    
+    # Top-right outer puzzle
+    tr_x = center_x + 6 * cell_size
+    tr_y = center_y + 6 * cell_size
+    draw_sudoku_grid(c, outers['top_right'], tr_x, tr_y, "")
+    
+    # Bottom-left outer puzzle
+    bl_x = center_x - 6 * cell_size
+    bl_y = center_y - 6 * cell_size
+    draw_sudoku_grid(c, outers['bottom_left'], bl_x, bl_y, "")
+    
+    # Bottom-right outer puzzle
+    br_x = center_x + 6 * cell_size
+    br_y = center_y - 6 * cell_size
+    draw_sudoku_grid(c, outers['bottom_right'], br_x, br_y, "")
+
 def main():
     # CHANGE DIFFICULTY HERE: "easy", "medium", or "hard"
-    DIFFICULTY = "medium"
+    DIFFICULTY = "hard"
+    
+    # CHANGE NUMBER OF PUZZLES TO GENERATE
+    NUM_PUZZLES = 20
     
     generator = SamuraiSudokuGenerator()
     samurai_puzzles = []
     
-    print(f"Generating {DIFFICULTY} Samurai Sudoku puzzles...")
-    for i in range(2):  # Generate 2 samurai puzzles
+    print(f"Generating {NUM_PUZZLES} {DIFFICULTY} Samurai Sudoku puzzles...")
+    for i in range(NUM_PUZZLES):
         center, outers = generator.generate_samurai_puzzles(DIFFICULTY)
         samurai_puzzles.append((center, outers))
         print(f"Samurai puzzle {i+1} generated")
     
     filename = f"{DIFFICULTY}_samurai_sudoku_puzzles.pdf"
     create_pdf_with_samurai_sudoku(samurai_puzzles, DIFFICULTY, filename)
-    print(f"PDF created: {filename}")
+    print(f"PDF created: {filename} with {NUM_PUZZLES} puzzles")
 
 if __name__ == "__main__":
     main()

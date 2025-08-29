@@ -94,9 +94,26 @@ class SoheiSudokuGenerator:
         
         return puzzles
 
-def draw_sohei_cross(c, puzzles, start_x, start_y):
-    cell_size = 18
+def draw_single_sudoku(c, puzzle, start_x, start_y, cell_size):
+    # Draw grid lines
+    for i in range(10):
+        line_width = 2 if i % 3 == 0 else 1
+        c.setLineWidth(line_width)
+        c.line(start_x + i * cell_size, start_y, 
+               start_x + i * cell_size, start_y - 9 * cell_size)
+        c.line(start_x, start_y - i * cell_size,
+               start_x + 9 * cell_size, start_y - i * cell_size)
     
+    # Fill numbers
+    c.setFont("Helvetica", 8)  # Reduced font size for two per page
+    for i in range(9):
+        for j in range(9):
+            if puzzle[i][j] != 0:
+                x = start_x + j * cell_size + cell_size/2 - 2
+                y = start_y - i * cell_size - cell_size/2 - 2
+                c.drawString(x, y, str(puzzle[i][j]))
+
+def draw_sohei_cross(c, puzzles, start_x, start_y, cell_size):
     # Calculate positions for cross layout
     # Top puzzle position
     top_x = start_x + 6 * cell_size
@@ -120,61 +137,51 @@ def draw_sohei_cross(c, puzzles, start_x, start_y):
     draw_single_sudoku(c, puzzles['right'], right_x, right_y, cell_size)
     draw_single_sudoku(c, puzzles['bottom'], bottom_x, bottom_y, cell_size)
 
-def draw_single_sudoku(c, puzzle, start_x, start_y, cell_size):
-    # Draw grid lines
-    for i in range(10):
-        line_width = 2 if i % 3 == 0 else 1
-        c.setLineWidth(line_width)
-        c.line(start_x + i * cell_size, start_y, 
-               start_x + i * cell_size, start_y - 9 * cell_size)
-        c.line(start_x, start_y - i * cell_size,
-               start_x + 9 * cell_size, start_y - i * cell_size)
-    
-    # Fill numbers
-    c.setFont("Helvetica", 10)
-    for i in range(9):
-        for j in range(9):
-            if puzzle[i][j] != 0:
-                x = start_x + j * cell_size + cell_size/2 - 3
-                y = start_y - i * cell_size - cell_size/2 - 3
-                c.drawString(x, y, str(puzzle[i][j]))
-
 def create_pdf_with_sohei_sudoku(sohei_puzzles, difficulty, filename):
     c = canvas.Canvas(filename, pagesize=letter)
     width, height = letter
     
-    for puzzle_num, puzzles in enumerate(sohei_puzzles):
+    for puzzle_num in range(0, len(sohei_puzzles), 2):  # Process 2 puzzles at a time
         if puzzle_num > 0:
             c.showPage()
         
-        c.setFont("Helvetica-Bold", 18)
-        c.drawString(200, height - 40, "SOHEI SUDOKU PUZZLE")
+        # Calculate positions for two sohei puzzles vertically stacked
+        cell_size = 16
         
-        c.setFont("Helvetica", 12)
-        c.drawString(220, height - 60, f"{difficulty.upper()} PUZZLE {puzzle_num + 1}")
+        # Each sohei puzzle needs about 18x18 cells of space (cross formation)
+        total_puzzle_height = 18 * cell_size
         
-        c.setFont("Helvetica", 10)
-        c.drawString(80, height - 80, "Complete each of the four overlapping grids so that each row, each column, and each")
-        c.drawString(80, height - 92, "outlined 3x3 square contains the numbers 1-9 exactly one time each.")
+        # Margins
+        top_margin = 30
+        bottom_margin = 20
+        spacing = 80
         
-        # Center the cross formation properly
-        cell_size = 18
-        puzzle_size = 9 * cell_size  # Each puzzle is 162px
+        # Calculate available space and scale down if needed
+        available_height = height - top_margin - bottom_margin
+        max_puzzle_height = (available_height - spacing) / 2
         
-        # For cross shape: effective width is just one puzzle (since top and bottom are centered)
-        # Effective height is 3 puzzles stacked
-        effective_width = puzzle_size
-        effective_height = puzzle_size * 3
+        # If puzzles are too big, scale down
+        if total_puzzle_height > max_puzzle_height:
+            scale_factor = max_puzzle_height / total_puzzle_height
+            cell_size = int(cell_size * scale_factor)
+            total_puzzle_height = max_puzzle_height
         
-        # Calculate center position
-        center_x = width / 2
-        center_y = height / 2
+        # Center horizontally
+        puzzle_width = 18 * cell_size
+        start_x = (width - puzzle_width) / 2
         
-        # Position so the middle horizontal line of cross is centered
-        start_x = center_x - puzzle_size * 1.5  # 1.5 puzzles to the left from center
-        start_y = center_y + effective_height / 2  # Half total height up from center
+        # Position puzzles with exact spacing
+        first_puzzle_start_y = height - top_margin
+        second_puzzle_start_y = height - top_margin - total_puzzle_height - spacing
         
-        draw_sohei_cross(c, puzzles, start_x, start_y)
+        # Draw first sohei puzzle
+        puzzles = sohei_puzzles[puzzle_num]
+        draw_sohei_cross(c, puzzles, start_x, first_puzzle_start_y, cell_size)
+        
+        # Draw second sohei puzzle if it exists
+        if puzzle_num + 1 < len(sohei_puzzles):
+            puzzles2 = sohei_puzzles[puzzle_num + 1]
+            draw_sohei_cross(c, puzzles2, start_x, second_puzzle_start_y, cell_size)
     
     c.save()
 
@@ -183,7 +190,7 @@ def main():
     DIFFICULTY = "medium"
     
     # CHANGE NUMBER OF PUZZLES TO GENERATE
-    NUM_PUZZLES = 3
+    NUM_PUZZLES = 12
     
     generator = SoheiSudokuGenerator()
     sohei_puzzles = []
@@ -201,7 +208,7 @@ def main():
     
     import os
     if os.path.exists(filename):
-        print(f"PDF created successfully: {filename}")
+        print(f"PDF created successfully: {filename} with {NUM_PUZZLES} puzzles")
     else:
         print(f"Error: PDF file was not created")
 

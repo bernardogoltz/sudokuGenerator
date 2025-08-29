@@ -99,7 +99,7 @@ class CrossSudokuGenerator:
         return puzzles
 
 def draw_cross_combined_grid(c, puzzles, start_x, start_y):
-    cell_size = 16
+    cell_size = 15  # Increased from 12 to 15
     
     # Create combined 21x21 grid
     combined = [[0]*21 for _ in range(21)]
@@ -176,7 +176,7 @@ def draw_cross_combined_grid(c, puzzles, start_x, start_y):
                    start_x + j * cell_size, start_y - (end_row + 1) * cell_size)
     
     # Fill numbers
-    c.setFont("Helvetica", 10)
+    c.setFont("Helvetica", 10)  # Increased from 8 to 10
     for i in range(21):
         for j in range(21):
             if combined[i][j] != 0:
@@ -189,37 +189,47 @@ def create_pdf_with_cross_sudoku(cross_puzzles, difficulty, filename):
     c = canvas.Canvas(filename, pagesize=letter)
     width, height = letter
     
-    for puzzle_num, puzzles in enumerate(cross_puzzles):
+    for puzzle_num in range(0, len(cross_puzzles), 2):  # Process 2 puzzles at a time
         if puzzle_num > 0:
             c.showPage()
         
-        c.setFont("Helvetica-Bold", 18)
-        c.drawString(200, height - 40, "CROSS SUDOKU PUZZLE")
+        # Calculate positions for two puzzles vertically stacked with minimal margins
+        cell_size = 15
+        cross_width = 21 * cell_size
+        cross_height = 21 * cell_size
         
-        c.setFont("Helvetica", 12)
-        c.drawString(220, height - 60, f"{difficulty.upper()} PUZZLE {puzzle_num + 1}")
+        # Small margins
+        top_margin = 30
+        bottom_margin = 30
         
-        c.setFont("Helvetica", 10)
-        c.drawString(50, height - 80, "Complete each of the five overlapping grids so that each row, each column, and each")
-        c.drawString(50, height - 92, "outlined 3x3 square contains the numbers 1-9 exactly one time each.")
+        # Calculate spacing to use remaining space efficiently
+        available_height = height - top_margin - bottom_margin
+        spacing = (available_height - 2 * cross_height) / 1  # Space between puzzles
         
-        # Center the cross with bigger size
-        cross_width = 21 * 16
-        cross_height = 21 * 16
-        
+        # Center horizontally
         start_x = (width - cross_width) / 2
-        start_y = (height + cross_height) / 2 - 30
         
-        draw_cross_combined_grid(c, puzzles, start_x, start_y)
+        # First puzzle position (top)
+        first_y = height - top_margin
+        
+        # Second puzzle position (bottom)
+        second_y = first_y - cross_height - spacing
+        
+        # Draw first puzzle
+        draw_cross_combined_grid(c, cross_puzzles[puzzle_num], start_x, first_y)
+        
+        # Draw second puzzle if it exists
+        if puzzle_num + 1 < len(cross_puzzles):
+            draw_cross_combined_grid(c, cross_puzzles[puzzle_num + 1], start_x, second_y)
     
     c.save()
 
 def main():
     # CHANGE DIFFICULTY HERE: "easy", "medium", or "hard"
-    DIFFICULTY = "medium"
+    DIFFICULTY = "hard"
     
     # CHANGE NUMBER OF PUZZLES TO GENERATE
-    NUM_PUZZLES = 2
+    NUM_PUZZLES = 20
     
     generator = CrossSudokuGenerator()
     cross_puzzles = []

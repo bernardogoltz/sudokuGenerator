@@ -163,13 +163,13 @@ def create_pdf_with_sudoku(puzzles, difficulty, puzzles_per_page, filename):
 
 def main():
     # CHANGE DIFFICULTY HERE: "easy", "medium", or "hard"
-    DIFFICULTY = "easy"
+    DIFFICULTY = "hard"
     
     # CHANGE NUMBER OF PUZZLES TO GENERATE  
-    NUM_PUZZLES = 1  # Start with 1 for testing
+    NUM_PUZZLES = 2  # Start with 1 for testing
     
     # CHANGE PUZZLES PER PAGE (max 4)
-    PUZZLES_PER_PAGE = 1
+    PUZZLES_PER_PAGE = 2
     
     generator = SudokuGenerator()
     puzzles = []
