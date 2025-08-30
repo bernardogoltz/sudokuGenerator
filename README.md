@@ -1,6 +1,9 @@
 # 🧩 Sudoku Generator
-
 Um gerador completo de puzzles Sudoku com interface web interativa construída com Streamlit.
+
+## A fazer
+- Jogar direto no site;
+
 
 ## 📁 Estrutura do Projeto
 
