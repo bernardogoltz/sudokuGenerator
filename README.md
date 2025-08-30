@@ -1,9 +1,13 @@
 # 🧩 Sudoku Generator
 Um gerador completo de puzzles Sudoku com interface web interativa construída com Streamlit.
 
+## 👩‍💻 Créditos
+
+- **Fernanda Bonaldo** - Desenvolvimento da lógica dos algoritmos de Sudoku
+- **Bernardo Goltz** - Desenvolvimento da interface web com Streamlit, containerização Docker, automação e deploy
+
 ## A fazer
 - Jogar direto no site;
-
 
 ## 📁 Estrutura do Projeto
 
@@ -27,11 +31,69 @@ sudokuGenerator/
 
 ## 🚀 Como Usar
 
-### Pré-requisitos
+### 🐳 Opção 1: Usando Docker (Recomendado)
+
+#### Pré-requisitos
+- Docker instalado ([Download Docker](https://docs.docker.com/get-docker/))
+
+#### Instalação e Execução
+
+1. Clone o repositório:
+```bash
+git clone <url-do-repositorio>
+cd sudokuGenerator
+```
+
+2. Execute o script de deploy:
+```bash
+# No Linux/Mac
+./docker-run.sh run
+
+# No Windows (PowerShell)
+.\docker-run.sh run
+```
+
+3. Acesse a aplicação em `http://localhost:8501`
+
+#### Comandos Docker Disponíveis
+
+```bash
+# Construir a imagem
+./docker-run.sh build
+
+# Executar a aplicação
+./docker-run.sh run
+
+# Parar a aplicação
+./docker-run.sh stop
+
+# Ver logs
+./docker-run.sh logs
+
+# Modo desenvolvimento (com hot reload)
+./docker-run.sh dev
+
+# Limpar containers e imagens
+./docker-run.sh clean
+```
+
+#### Usando Docker Compose diretamente
+
+```bash
+# Executar
+docker-compose up -d
+
+# Parar
+docker-compose down
+```
+
+### 🐍 Opção 2: Instalação Local
+
+#### Pré-requisitos
 - Python 3.7 ou superior
 - pip (gerenciador de pacotes Python)
 
-### Instalação
+#### Instalação
 
 1. Clone o repositório:
 ```bash
@@ -44,7 +106,85 @@ cd sudokuGenerator
 pip install -r requirements.txt
 ```
 
-### Executar a Aplicação Web
+#### Executar a Aplicação Web
+
+```bash
+streamlit run app.py
+```
+
+A aplicação será aberta automaticamente no seu navegador em `http://localhost:8501`https://docs.docker.com/get-docker/))
+
+#### Instalação e Execução
+
+1. Clone o repositório:
+```bash
+git clone <url-do-repositorio>
+cd sudokuGenerator
+```
+
+2. Execute o script de deploy:
+```bash
+# No Linux/Mac
+./docker-run.sh run
+
+# No Windows (PowerShell)
+.\docker-run.sh run
+```
+
+3. Acesse a aplicação em `http://localhost:8501`
+
+#### Comandos Docker Disponíveis
+
+```bash
+# Construir a imagem
+./docker-run.sh build
+
+# Executar a aplicação
+./docker-run.sh run
+
+# Parar a aplicação
+./docker-run.sh stop
+
+# Ver logs
+./docker-run.sh logs
+
+# Modo desenvolvimento (com hot reload)
+./docker-run.sh dev
+
+# Limpar containers e imagens
+./docker-run.sh clean
+```
+
+#### Usando Docker Compose diretamente
+
+```bash
+# Executar
+docker-compose up -d
+
+# Parar
+docker-compose down
+```
+
+### 🐍 Opção 2: Instalação Local
+
+#### Pré-requisitos
+- Python 3.7 ou superior
+- pip (gerenciador de pacotes Python)
+
+#### Instalação
+
+1. Clone o repositório:
+```bash
+git clone <url-do-repositorio>
+cd sudokuGenerator
+```
+
+2. Instale as dependências:
+```bash
+pip install -r requirements.txt
+```
+
+#### Executar a Aplicação Web
 
 ```bash
 streamlit run app.py
